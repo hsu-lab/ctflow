@@ -1,131 +1,81 @@
-# SRFlow
-#### Official SRFlow training code: Super-Resolution using Normalizing Flow in PyTorch <br><br>
-#### [[Paper] ECCV 2020 Spotlight](https://bit.ly/2DkwQcg)
+# CTFlow
+#### Official CTFlow Repository: Using Normalizing Flow for CT Harmonization <br><br>
 
-<br>
+The repository contains a conditional normalizing flow approach to harmonize CT scans that are acquired and reconstructed with different CT parameters (i.e., Kernel, Dose etc.) to a reference reconstruction. The novelty of this work inclues:
+* A novel autoencoding technique to manipulate the latent space that results in better generalization on external datasets.
+* It allows for the measurement of uncertainty using diverse output images that are obtained
+by sampling the latent space.
 
-[![SRFlow](https://user-images.githubusercontent.com/11280511/98149322-7ed5c580-1ecd-11eb-8279-f02de9f0df12.gif)](https://bit.ly/3jWFRcr)
-<br>
-<br>
-<br>
+#### Invertibel Flow Operation
+![Flow Operation](./readme_utils/CTFlow.gif?raw=true "Title")
 
-# Setup: Data, Environment, PyTorch Demo
+# Getting Started
 
-<br>
+### Step 1 → Setup Environment
 
-```bash
-git clone https://github.com/andreas128/SRFlow.git && cd SRFlow && ./setup.sh
+The application is containerized within a docker image (```ayadav01/mii-nvidia_flow:1.1```) available via docker hub.
+
+* Pull the docker container
+
+```docker
+docker pull ayadav01/mii-nvidia_flow:1.1
 ```
 
-<br>
+### Step 2 → Download ```main.py```
 
-This oneliner will:
-- Clone SRFlow
-- Setup a python3 virtual env
-- Install the packages from `requirements.txt`
-- Download the pretrained models
-- Download the validation data
-- Run the Demo Jupyter Notebook
+Only download the ```main.py``` file from this repository. Change the required arguments as explained below.
 
-If you want to install it manually, read the `setup.sh` file. (Links to data/models, pip packages)
+```python 
+import ctflow.run_inference as ct_infer
 
-<br><br>
 
-# Demo: Try Normalizing Flow in PyTorch
-
-```bash
-./run_jupyter.sh
+if __name__ == '__main__':
+    path_to_test_data = '/path_to_test_set'
+    ct_infer.execute(path_to_test_data, data_ext='data_format_of_test_set', tau=0.8, conf='mapping_conditoin', use_gpu=[], out_to='path_to_save_results')
 ```
+* *path_to_test_data* = Proivde path to where all the test cases are.
+> Make sure the path provided here is the mounted data path in docker. Explained in step 3 below. 
+* *data_ext* = Provide the format type of the test cases. Current implementation expects input data to be in either [Nrrd](https://pynrrd.readthedocs.io/en/stable/), [Dicom](https://pydicom.github.io/pydicom/stable/tutorials/installation.html) or [Nibabel](https://nipy.org/nibabel/) format. Use `'nrrd'`, `'dcm'` or `'nii'` for this argument.
+* *tau* = Temperature parameter. Varying this will change the output texture of the image. We found `0.8` to be the optimal setting.
+* *conf* = The mapping weights to use for inference. We trained several CT mapping. Use one of the following:
+  * `'smooth/10'`
+  * `'smooth/25'`
+  * `'medium/10'`
+  * `'medium/25'`
+  * `'sharp/10'`
+  * `'sharp/25'`
+* *use_gpu* = provide a gpu id inside the list if available. If left empty, inference will occur on cpu.
+* *out_to* = Provide path to where the harmonized CT should be saved. Default path is `'./results'`.
 
-This notebook lets you:
-- Load the pretrained models.
-- Super-resolve images.
-- Measure PSNR/SSIM/LPIPS.
-- Infer the Normalizing Flow latent space.
+### Step 3 → Run Docker
 
-<br><br>
-
-# Testing: Apply the included pretrained models
-
-```bash
-source myenv/bin/activate                      # Use the env you created using setup.sh
-cd code
-CUDA_VISIBLE_DEVICES=-1 python test.py ./confs/SRFlow_DF2K_4X.yml      # Diverse Images 4X (Dataset Included)
-CUDA_VISIBLE_DEVICES=-1 python test.py ./confs/SRFlow_DF2K_8X.yml      # Diverse Images 8X (Dataset Included)
-CUDA_VISIBLE_DEVICES=-1 python test.py ./confs/SRFlow_CelebA_8X.yml    # Faces 8X
+Run docker container. We mount two directores inside the container:
+* Mount the `main.py` file directory.
+* Mount the test data directory.
+```docker
+docker run --name <name_of_container> --shm-size=<memory_size> -it --rm -v <path_to_main.py_directory>:/workspace/ctflow_test  -v <path_to_test_data>:/data -v /etc/localtime:/etc/localtime:ro ayadav01/mii-nvidia_flow:1.1
 ```
-For testing, we apply SRFlow to the full images on CPU.
+* *name_of_container* = Provide any name for the container.
+* *memory_size* = Shared memory size. Use `2g` or `4g` or `6g` here, depending on available memory. 
+* *path_to_main.py_directory* = Provide the path to where the `main.py` file is. This will be the working dirctory inside docker container.
+* *path_to_test_data* = Provide path to where the test cases are.
+> In the `main.py` file, provide the mounted data path (`'/data'`)
 
-<br><br>
+### Step 3 → Run `main.py`
 
-# Training: Reproduce or train on your Data
-
-The following commands train the Super-Resolution network using Normalizing Flow in PyTorch:
-
+Within docker container, navigate to where the `main.py` file is.
 ```bash
-source myenv/bin/activate                      # Use the env you created using setup.sh
-cd code
-python train.py -opt ./confs/SRFlow_DF2K_4X.yml      # Diverse Images 4X (Dataset Included)
-python train.py -opt ./confs/SRFlow_DF2K_8X.yml      # Diverse Images 8X (Dataset Included)
-python train.py -opt ./confs/SRFlow_CelebA_8X.yml    # Faces 8X
+cd /workspace/ctflow_test
+python main.py
 ```
-
-- To reduce the GPU memory, reduce the batch size in the yml file.
-- CelebA does not allow us to host the dataset. A script will follow.
-
 <br><br>
 
-# Dataset: How to train on your own data
+# Why Normalizing Flow ?
 
-The following command creates the pickel files that you can use in the yaml config file:
+Please read this quick introduction to Normalizing Flow by the authors of the SRFlow paper [[Blog]](https://bit.ly/320bAkH).
 
-```bash
-cd code
-python prepare_data.py /path/to/img_dir
-```
 
-The precomputed DF2K dataset gets downloaded using `setup.sh`. You can reproduce it or prepare your own dataset.
-
-<br><br>
-
-# Our paper explains
-
-- **How to train Conditional Normalizing Flow** <br>
-  We designed an architecture that archives state-of-the-art super-resolution quality.
-- **How to train Normalizing Flow on a single GPU**  <br>
-  We based our network on GLOW, which uses up to 40 GPUs to train for image generation. SRFlow only needs a single GPU for training conditional image generation.
-- **How to use Normalizing Flow for image manipulation**  <br>
-  How to exploit the latent space for Normalizing Flow for controlled image manipulations
-- **See many Visual Results**  <br>
-  Compare GAN vs Normalizing Flow yourself. We've included a lot of visuals results in our [[Paper]](https://bit.ly/2D9cN0L).
-
-<br><br>
-
-# GAN vs Normalizing Flow - Blog
-
-[![](https://user-images.githubusercontent.com/11280511/98148862-56e66200-1ecd-11eb-817e-87e99dcab6ca.gif)](https://bit.ly/2EdJzhy)
-
-- **Sampling:** SRFlow outputs many different images for a single input.
-- **Stable Training:** SRFlow has much fewer hyperparameters than GAN approaches, and we did not encounter training stability issues.
-- **Convergence:** While GANs cannot converge, conditional Normalizing Flows converge monotonic and stable.
-- **Higher Consistency:** When downsampling the super-resolution, one obtains almost the exact input.
-
-Get a quick introduction to Normalizing Flow in our [[Blog]](https://bit.ly/320bAkH).
-<br><br><br>
-
-<br><br>
-
-# Wanna help to improve the code?
-
-If you found a bug or improved the code, please do the following:
-
-- Fork this repo.
-- Push the changes to your repo.
-- Create a pull request.
-
-<br><br>
-
-# Paper
+### SRFlow Paper
 [[Paper] ECCV 2020 Spotlight](https://bit.ly/2XcmSks)
 
 ```bibtex
@@ -136,4 +86,11 @@ If you found a bug or improved the code, please do the following:
   year={2020}
 }
 ```
+[![SRFlow](https://user-images.githubusercontent.com/11280511/98149322-7ed5c580-1ecd-11eb-8279-f02de9f0df12.gif)](https://bit.ly/3jWFRcr)
+
+- **Sampling:** SRFlow outputs many different images for a single input.
+- **Stable Training:** SRFlow has much fewer hyperparameters than GAN approaches, and we did not encounter training stability issues.
+- **Convergence:** While GANs cannot converge, conditional Normalizing Flows converge monotonic and stable.
+- **Higher Consistency:** When downsampling the super-resolution, one obtains almost the exact input.
+
 <br><br>
