@@ -6,15 +6,15 @@ The repository contains a conditional normalizing flow approach to harmonize CT 
 * It allows for the measurement of uncertainty using diverse output images that are obtained
 by sampling the latent space.
 
-#### Invertibel Flow Operation
+#### Invertible Flow Operation
 ![Flow Operation](./readme_utils/CTFlow.gif?raw=true "Title")
 
 # Getting Started
 
-### Step 1 → Setup Data
+### Setup Data
 
 Current implementation expects input data to be in either [NRRD](https://pynrrd.readthedocs.io/en/stable/), [DICOM](https://pydicom.github.io/pydicom/stable/tutorials/installation.html) or [NIfTI](https://nipy.org/nibabel/). Please format the test data to follow a directory structue as shown below.
-> If the data type is other than DICOM, the model assumes that the voxels are in Hounsfield Units (HU). Please ensure that the NRRD or NIfTI (nii.gz) data has been preprocessed to be in HU
+> If the data type is other than `DICOM`, the model assumes that the voxels are in Hounsfield Units (HU). Please ensure that the `NRRD` or `NIfTI` data has been preprocessed to be in HU
 ```
 ├── Nrrd_Data
 │   ├── case_1.nrrd
@@ -40,7 +40,7 @@ Current implementation expects input data to be in either [NRRD](https://pynrrd.
 │   ├── ...
 ```
 
-### Step 1 → Setup Environment
+###  Setup Environment
 
 The application is containerized within a docker image (```ayadav01/mii-nvidia_flow:1.1```) available via docker hub.
 
@@ -50,7 +50,7 @@ The application is containerized within a docker image (```ayadav01/mii-nvidia_f
 docker pull ayadav01/mii-nvidia_flow:1.1
 ```
 
-### Step 2 → Download ```main.py```
+### Download ```main.py```
 
 Only download the ```main.py``` file from this repository. Change the required arguments as explained below.
 
@@ -64,7 +64,7 @@ if __name__ == '__main__':
 ```
 * *path_to_test_data* = Proivde path to where all the test cases are.
 > Make sure the path provided here is the mounted data path in docker. Explained in step 3 below. 
-* *data_ext* = Provide the format type of the test cases. Current implementation expects input data to be in either [Nrrd](https://pynrrd.readthedocs.io/en/stable/), [Dicom](https://pydicom.github.io/pydicom/stable/tutorials/installation.html) or [Nibabel](https://nipy.org/nibabel/) format. Use `'nrrd'`, `'dcm'` or `'nii'` for this argument.
+* *data_ext* = Provide the data type. Use `'nrrd'`, `'dcm'` or `'nii'` for this argument.
 * *tau* = Temperature parameter. Varying this will change the output texture of the image. We found `0.8` to be the optimal setting.
 * *conf* = The mapping weights to use for inference. We trained several CT mapping. Use one of the following:
   * `'smooth/10'`
@@ -76,7 +76,7 @@ if __name__ == '__main__':
 * *use_gpu* = provide a gpu id inside the list if available. If left empty, inference will occur on cpu.
 * *out_to* = Provide path to where the harmonized CT should be saved. Default path is `'./results'`.
 
-### Step 3 → Usage (Run Docker)
+### Usage (Run Docker)
 
 Run docker container. We mount two directores inside the container:
 * Mount the `main.py` file directory.
@@ -90,7 +90,7 @@ docker run --name <name_of_container> --shm-size=<memory_size> -it --rm -v <path
 * *path_to_test_data* = Provide path to where the test cases are.
 > In the `main.py` file, provide the mounted data path (`'/data'`)
 
-### Step 3 → Run `main.py`
+### Run `main.py`
 
 Within docker container, navigate to where the `main.py` file is.
 ```bash
