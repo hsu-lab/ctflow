@@ -11,6 +11,35 @@ by sampling the latent space.
 
 # Getting Started
 
+### Step 1 → Setup Data
+
+Current implementation expects input data to be in either [NRRD](https://pynrrd.readthedocs.io/en/stable/), [DICOM](https://pydicom.github.io/pydicom/stable/tutorials/installation.html) or [NIfTI](https://nipy.org/nibabel/). Please format the test data to follow a directory structue as shown below.
+> If the data type is other than DICOM, the model assumes that the voxels are in Hounsfield Units (HU). Please ensure that the NRRD or NIfTI (nii.gz) data has been preprocessed to be in HU
+```
+├── Nrrd_Data
+│   ├── case_1.nrrd
+│   ├── case_2.nrrd   
+│   ├── ...
+│  
+├── Nifti_Data
+│   ├── case_1.nii.gz
+│   ├── case_2.nii.gz
+│   ├── ...
+│
+├── Dicom_Data
+│   ├── case_1
+│   │   ├── dicom_0.dcm
+│   │   ├── dicom_1.dcm
+│   │   ├── dicom_2.dcm
+│   │   ├── ...
+│   ├── case_2
+│   │   ├── dicom_0.dcm
+│   │   ├── dicom_1.dcm
+│   │   ├── dicom_2.dcm
+│   │   ├── ...
+│   ├── ...
+```
+
 ### Step 1 → Setup Environment
 
 The application is containerized within a docker image (```ayadav01/mii-nvidia_flow:1.1```) available via docker hub.
@@ -47,7 +76,7 @@ if __name__ == '__main__':
 * *use_gpu* = provide a gpu id inside the list if available. If left empty, inference will occur on cpu.
 * *out_to* = Provide path to where the harmonized CT should be saved. Default path is `'./results'`.
 
-### Step 3 → Run Docker
+### Step 3 → Usage (Run Docker)
 
 Run docker container. We mount two directores inside the container:
 * Mount the `main.py` file directory.
