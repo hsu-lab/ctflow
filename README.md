@@ -39,6 +39,7 @@ Current implementation expects input data to be in either [NRRD](https://pynrrd.
 │   │   ├── ...
 │   ├── ...
 ```
+We provide an example data from the [LIDC-IDRI](https://drive.google.com/file/d/140C7cUv4ZBIe2dxcJKjL8XPngXqZ77x5/view?usp=sharing) for you to download and follow the tutorial. When running the code on your custom dataset, ensure that you organize its directory structure to resemble the one demonstrated in the provided example.
 
 ###  Setup Environment
 
@@ -59,11 +60,11 @@ import ctflow.run_inference as ct_infer
 
 
 if __name__ == '__main__':
-    path_to_test_data = '/path_to_test_set'
-    ct_infer.execute(path_to_test_data, data_ext='data_format_of_test_set', tau=0.8, conf='mapping_conditoin', use_gpu=[], out_to='path_to_save_results')
+    path_to_test_data = '/data/example_LIDC-IDRI'
+    ct_infer.execute(path_to_test_data, data_ext='dcm', tau=0.8, conf='medium/25', use_gpu=[], out_to='lidcOut')
 ```
 * *path_to_test_data* = Proivde path to where all the test cases are.
-> Make sure the path provided here is the mounted data path in docker. Explained in step 3 below. 
+> Make sure the path provided here is the mounted data path in docker. See Usage section below. 
 * *data_ext* = Provide the data type. Use `'nrrd'`, `'dcm'` or `'nii'` for this argument.
 * *tau* = Temperature parameter. Varying this will change the output texture of the image. We found `0.8` to be the optimal setting.
 * *conf* = The mapping weights to use for inference. We trained several CT mapping. Use one of the following:
@@ -82,7 +83,7 @@ Run docker container. We mount two directores inside the container:
 * Mount the `main.py` file directory.
 * Mount the test data directory.
 ```docker
-docker run --name <name_of_container> --shm-size=<memory_size> -it --rm -v <path_to_main.py_directory>:/workspace/ctflow_test  -v <path_to_test_data>:/data -v /etc/localtime:/etc/localtime:ro ayadav01/mii-nvidia_flow:1.1
+docker run --name <name_of_container> --shm-size=<memory_size> -it --gpus all --rm -v <path_to_main.py_directory>:/workspace/ctflow_test  -v <path_to_test_data>:/data/example_LIDC-IDRI -v /etc/localtime:/etc/localtime:ro ayadav01/mii-nvidia_flow:1.1
 ```
 * *name_of_container* = Provide any name for the container.
 * *memory_size* = Shared memory size. Use `2g` or `4g` or `6g` here, depending on available memory. 
